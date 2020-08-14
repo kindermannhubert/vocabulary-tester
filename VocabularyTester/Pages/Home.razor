@@ -1,0 +1,66 @@
+﻿@page "/"
+@using VocabularyTester.Words
+@inject HttpClient Http
+@inject Blazored.LocalStorage.ILocalStorageService LocalStorage
+
+<PageTitle>Testing</PageTitle>
+
+@if (wordsProvider is null)
+{
+    <p><em>Loading...</em></p>
+}
+else if (wordsProvider.Current is null)
+{
+    <p><em>No words available.</em></p>
+}
+else
+{
+    <div class="centered-div">
+        <div class="card">
+            <div class=card-header>
+                <p class="card-header-rating">Rating: @wordsProvider.Current.Rating.Familiarness.ToString("P1")</p>
+                <div></div>
+                <button class="btn btn-primary btn-rating-super-easy" @onclick="() => RateWord(Rating.SuperEasy)">Super Easy</button>
+            </div>
+            <h1 class="word">@wordsProvider.Current.Word</h1>
+            @if (showTranslation)
+            {
+                <div class="description" id="desc">@wordsProvider.Current.Trans</div>
+                <div>
+                    <button class="btn btn-primary btn-rating" @onclick="() => RateWord(Rating.Easy)">Easy</button>
+                    <button class="btn btn-primary btn-rating" @onclick="() => RateWord(Rating.Medium)">Medium</button>
+                    <button class="btn btn-primary btn-rating" @onclick="() => RateWord(Rating.Hard)">Hard</button>
+                </div>
+            }
+            else
+            {
+                <div></div>
+                <div>
+                    <button class="btn btn-primary btn-rating" @onclick="() => showTranslation=true">Show</button>
+                </div>
+            }
+        </div>
+    </div>
+}
+
+@code {
+    private WordsProvider? wordsProvider;
+    private bool showTranslation;
+
+    private async Task RateWord(Rating rating)
+    {
+        if (wordsProvider != null)
+        {
+            await wordsProvider.RateCurrentWord(rating);
+            wordsProvider.MoveToNextWord();
+        }
+        showTranslation = false;
+    }
+
+    protected override async Task OnInitializedAsync()
+    {
+        var wordsDataSource = await WordsDataSource.Create(Http);
+        wordsProvider = new WordsProvider(wordsDataSource, LocalStorage);
+        await wordsProvider.Initialize();
+    }
+}
