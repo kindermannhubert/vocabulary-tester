@@ -1,0 +1,3 @@
+good;dobry
+dog;pes
+cat;kocka
