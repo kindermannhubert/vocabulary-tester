@@ -2,26 +2,63 @@
 
 public class RatedWordsCollection
 {
-    private readonly Dictionary<string, Rating> ratedWords = new();
+    public const double MaxTotalUnfamiliarness = 1;
+
+    private readonly HashSet<string> superEasyWords = [];
+    private readonly Dictionary<string, Rating> wordToRating = [];
+    private readonly List<string> ratedWords = [];
+    private double totalUnfamiliarness;
 
     public RatedWordsCollection()
     {
-        //TODO load
+        //TODO load - pouzivat Add
 
 
     }
 
-    public bool TryGetRating(string word, out Rating rating) => ratedWords.TryGetValue(word, out rating);
+    public bool AnyNonSuperEasyWords => ratedWords.Count > 0;
+
+    public bool HasCapacityForNextUnfamiliarWord => totalUnfamiliarness <= MaxTotalUnfamiliarness;
+
+    public bool TryGetRating(string word, out Rating rating)
+    {
+        if (superEasyWords.Contains(word))
+        {
+            rating = Rating.SuperEasy;
+            return true;
+        }
+
+        return wordToRating.TryGetValue(word, out rating);
+    }
 
     public void Add(string word, Rating rating)
     {
-        if (ratedWords.TryGetValue(word, out var existingRating))
+        if (rating.IsSuperEasy)
         {
-            ratedWords[word] = new Rating(0.5 * (existingRating.Value + rating.Value));
+            superEasyWords.Add(word);
+            wordToRating.Remove(word);
+            ratedWords.Remove(word);
+        }
+        else if (wordToRating.TryGetValue(word, out var existingRating))
+        {
+            totalUnfamiliarness -= existingRating.Unfamiliarness;
+            rating = new Rating(0.5 * (existingRating.Familiarness + rating.Familiarness));
+            wordToRating[word] = rating;
         }
         else
         {
-            ratedWords.Add(word, rating);
+            rating = rating.GetFirstTimeDiscount();
+            wordToRating.Add(word, rating);
+            ratedWords.Add(word);
         }
+
+        totalUnfamiliarness += rating.Unfamiliarness;
+        Console.WriteLine($"TotalUnfamiliarness: {totalUnfamiliarness}");
+    }
+
+    public (string Word, Rating Rating) GetRandom()
+    {
+        var word = ratedWords[Random.Shared.Next(ratedWords.Count)];
+        return (word, wordToRating[word]);
     }
 }

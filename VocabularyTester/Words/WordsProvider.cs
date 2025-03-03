@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Components;
+﻿using System.Diagnostics;
+using Microsoft.AspNetCore.Components;
 
 namespace VocabularyTester.Words;
 
@@ -17,14 +18,21 @@ public class WordsProvider
 
     public async Task Initialize()
     {
-        while (true)
+        while (await source.MoveNextAsync())
         {
-            await MoveToNextWord();
-            if (Current is null ||
-                !ratedWords.TryGetRating(Current.Source, out _))
+            if (!ratedWords.TryGetRating(source.Current, out _))
             {
                 break;
             }
+        }
+
+        if (ratedWords.AnyNonSuperEasyWords)
+        {
+            SelectRandomRatedWord();
+        }
+        else
+        {
+            SelectCurrentNewWord();
         }
     }
 
@@ -38,15 +46,44 @@ public class WordsProvider
 
     public async Task MoveToNextWord()
     {
-        if (await source.MoveNextAsync())
+        bool nextWillBeAlreadyRated = !ratedWords.HasCapacityForNextUnfamiliarWord;
+        if (nextWillBeAlreadyRated)
         {
-            ratedWords.TryGetRating(source.Current, out var rating);
-            Current = new Word(source.Current, rating, new MarkupString("TODO"));
+            SelectRandomRatedWord();
         }
         else
         {
-            Current = null;
+            Debug.Assert(source.Current != null);
+
+            if (await source.MoveNextAsync())
+            {
+                SelectCurrentNewWord();
+            }
+            else
+            {
+                Current = null;
+            }
         }
+    }
+
+    private void SelectCurrentNewWord()
+    {
+        Console.WriteLine($"Choosing new word '{source.Current}'.");
+        Debug.Assert(source.Current != null);
+        Debug.Assert(!ratedWords.TryGetRating(source.Current, out _));
+        Current = CreateWord(source.Current, Rating.Unknown);
+    }
+
+    private void SelectRandomRatedWord()
+    {
+        var (word, rating) = ratedWords.GetRandom();
+        Console.WriteLine($"Choosing already rated '{word}' / {rating.Familiarness:P1}.");
+        Current = CreateWord(word, rating);
+    }
+
+    private static Word CreateWord(string word, Rating rating)
+    {
+        return new Word(word, rating, new MarkupString("TODO"));
     }
 }
 

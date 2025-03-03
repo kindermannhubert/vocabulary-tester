@@ -4,25 +4,29 @@
 
 <PageTitle>Testing</PageTitle>
 
-@if (wordsProvider?.Current is null)
+@if (wordsProvider is null)
 {
     <p><em>Loading...</em></p>
+}
+else if (wordsProvider.Current is null)
+{
+    <p><em>No words available.</em></p>
 }
 else
 {
     <div class="centered-div">
         <div class="card">
             <div class=card-header>
-				<p>Rating: @wordsProvider.Current.Rating.Value.ToString("P1")</p>
-				<div></div>
-				<button class="btn btn-primary btn-super-easy" @onclick="() => RateWord(Rating.SuperEasy)">Super Easy</button>
+                <p class="card-header-rating">Rating: @wordsProvider.Current.Rating.Familiarness.ToString("P1")</p>
+                <div></div>
+                <button class="btn btn-primary btn-rating-super-easy" @onclick="() => RateWord(Rating.SuperEasy)">Super Easy</button>
             </div>
             <h1 class="word">@wordsProvider.Current.Source</h1>
             <div class="description" id="desc">This is the description of the word.</div>
             <div>
-                <button class="btn btn-primary" @onclick="() => RateWord(Rating.Easy)">Easy</button>
-                <button class="btn btn-primary" @onclick="() => RateWord(Rating.Medium)">Medium</button>
-                <button class="btn btn-primary" @onclick="() => RateWord(Rating.Hard)">Hard</button>
+                <button class="btn btn-primary btn-rating" @onclick="() => RateWord(Rating.Easy)">Easy</button>
+                <button class="btn btn-primary btn-rating" @onclick="() => RateWord(Rating.Medium)">Medium</button>
+                <button class="btn btn-primary btn-rating" @onclick="() => RateWord(Rating.Hard)">Hard</button>
             </div>
         </div>
     </div>
