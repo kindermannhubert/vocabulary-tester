@@ -130,7 +130,7 @@ code {
 .card {
   display: grid;
   grid-template-rows: auto auto 1fr auto;
-  width: 80%;
+  width: 100%;
   height: 100%;
   padding: 20px;
   text-align: center;
@@ -144,7 +144,7 @@ code {
   grid-template-columns: auto 1fr auto;
   width: 100%;
   background: white;
-  margin-bottom: 30px
+  margin-bottom: 30px;
 }
 
 .btn-super-easy {
@@ -158,9 +158,9 @@ code {
 }
 
 .word {
-  font-size: 54px;
+  font-size: 74px;
   font-weight: bold;
-  margin-bottom: 10px;
+  margin-bottom: 30px;
 }
 /*
 .description {
